@@ -14,14 +14,7 @@ import com.sun.javafx.css.converters.PaintConverter;
 import com.sun.javafx.css.converters.SizeConverter;
 import com.sun.javafx.css.converters.StringConverter;
 import com.sun.javafx.css.converters.URLConverter;
-import com.sun.javafx.scene.layout.region.BorderStyleConverter;
-import com.sun.javafx.scene.layout.region.CornerRadiiConverter;
-import com.sun.javafx.scene.layout.region.LayeredBackgroundPositionConverter;
-import com.sun.javafx.scene.layout.region.LayeredBackgroundSizeConverter;
-import com.sun.javafx.scene.layout.region.LayeredBorderPaintConverter;
-import com.sun.javafx.scene.layout.region.LayeredBorderStyleConverter;
-import com.sun.javafx.scene.layout.region.Margins;
-import com.sun.javafx.scene.layout.region.RepeatStructConverter;
+import com.sun.javafx.scene.layout.region.*;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -161,6 +154,7 @@ public class Main {
             if (values.length == 0) {
                 cssStringBuilder.append("null");
             }
+
             for (int i = 0; i < values.length; i++) {
                 ParsedValue[] subValues = (ParsedValue[]) values[i].getValue();
                 cssStringBuilder.append("url(").append(subValues[0].getValue()).append(")");
@@ -168,6 +162,16 @@ public class Main {
                     cssStringBuilder.append(" ");
                 }
             }
+        });
+        CONVERTERS.put(URLConverter.class, (cssStringBuilder, parsedValue, converter, value) -> {
+            ParsedValue[] values = (ParsedValue[]) value;
+            if (values.length == 0) {
+                cssStringBuilder.append("null");
+            }
+                //System.out.println(values[0]);
+                cssStringBuilder.append("url(").append(values[0].getValue()).append(")");
+                //cssStringBuilder.append(" ");
+
         });
         CONVERTERS.put(PaintConverter.SequenceConverter.class, (cssStringBuilder, parsedValue, converter, value) -> {
             ParsedValue[] values = (ParsedValue[]) value;
@@ -182,6 +186,120 @@ public class Main {
                 }
                 if (i != values.length - 1) {
                     cssStringBuilder.append(" ");
+                }
+            }
+        });
+
+        CONVERTERS.put(SliceSequenceConverter.class, (cssStringBuilder, parsedValue, converter, value) -> {
+            ParsedValue[] layeredSides = (ParsedValue[]) value;
+            for (int i = 0; i < layeredSides.length; i++) {
+                ParsedValue[] sides = (ParsedValue[]) layeredSides[i].getValue();
+
+                if (sides.length == 0) {
+                    cssStringBuilder.append("0");
+                }
+                for (int j = 0; j < sides.length-1; j++) {
+                    ParsedValue[] values = (ParsedValue[]) sides[0].getValue();
+                    //System.out.println(values[0]);
+                    //System.out.println(values[1]);
+                    //System.out.println(values[2]);
+                    //System.out.println(values[3]);
+                    //appendValue(cssStringBuilder, sides[j].getValue());
+                    appendValue(cssStringBuilder, values[0].getValue());
+                    cssStringBuilder.append(" ");
+                    appendValue(cssStringBuilder, values[1].getValue());
+                    cssStringBuilder.append(" ");
+                    appendValue(cssStringBuilder, values[2].getValue());
+                    cssStringBuilder.append(" ");
+                    appendValue(cssStringBuilder, values[3].getValue());
+
+                    if (j != sides.length - 2) {
+                        cssStringBuilder.append(" ");
+                    }
+                }
+                if (i != layeredSides.length - 1) {
+                    cssStringBuilder.append(", ");
+                }
+            }
+        });
+        CONVERTERS.put(LayeredBackgroundSizeConverter.class, (cssStringBuilder, parsedValue, converter, value) -> {
+            try {
+                ParsedValue[] layeredSides = (ParsedValue[]) value;
+                for (int i = 0; i < layeredSides.length; i++) {
+                    ParsedValue[] sides = (ParsedValue[]) layeredSides[i].getValue();
+                    if (sides.length == 0) {
+                        cssStringBuilder.append("0");
+                    }
+                    for (int j = 0; j < sides.length; j++) {
+                        //System.out.println(sides[j].getValue());
+                        if (!sides[j].getValue().equals("null")) {
+                            appendValue(cssStringBuilder, sides[j].getValue());
+                        }
+                        if (j != sides.length - 1) {
+                            cssStringBuilder.append(" ");
+                        }
+                    }
+                    if (i != layeredSides.length - 1) {
+                        cssStringBuilder.append(", ");
+                    }
+                }
+            }
+            catch (NullPointerException e) {
+                cssStringBuilder.append("0");
+            }
+        });
+        CONVERTERS.put(BorderImageWidthsSequenceConverter.class, (cssStringBuilder, parsedValue, converter, value) -> {
+            ParsedValue[] layeredSides = (ParsedValue[]) value;
+            for (int i = 0; i < layeredSides.length; i++) {
+                ParsedValue[] sides = (ParsedValue[]) layeredSides[i].getValue();
+                if (sides.length == 0) {
+                    cssStringBuilder.append("0");
+                }
+                for (int j = 0; j < sides.length; j++) {
+                    appendValue(cssStringBuilder, sides[j].getValue());
+                    if (j != sides.length - 1) {
+                        cssStringBuilder.append(" ");
+                    }
+                }
+                if (i != layeredSides.length - 1) {
+                    cssStringBuilder.append(", ");
+                }
+            }
+        });
+        CONVERTERS.put(BorderImageWidthConverter.class, (cssStringBuilder, parsedValue, converter, value) -> {
+            ParsedValue[] layeredPositions = (ParsedValue[]) value;
+            if (layeredPositions.length == 0) {
+                cssStringBuilder.append("null");
+            }
+            for (int i = 0; i < layeredPositions.length; i++) {
+                ParsedValue[] sides = (ParsedValue[]) layeredPositions[i].getValue();
+                appendValue(cssStringBuilder, sides[i] == null ? "auto" : sides[i].getValue());
+                cssStringBuilder.append(" ");
+                appendValue(cssStringBuilder, sides[i] == null ? "auto" : sides[i].getValue());
+                cssStringBuilder.append(" ");
+                appendValue(cssStringBuilder, sides[i] == null ? "auto" : sides[i].getValue());
+                cssStringBuilder.append(" ");
+                appendValue(cssStringBuilder, sides[i] == null ? "auto" : sides[i].getValue());
+                if (i != layeredPositions.length - 1) {
+                    cssStringBuilder.append(", ");
+                }
+            }
+        });
+        CONVERTERS.put(BorderImageSliceConverter.class, (cssStringBuilder, parsedValue, converter, value) -> {
+            ParsedValue[] layeredSides = (ParsedValue[]) value;
+            for (int i = 0; i < layeredSides.length; i++) {
+                ParsedValue[] sides = (ParsedValue[]) layeredSides[i].getValue();
+                if (sides.length == 0) {
+                    cssStringBuilder.append("0");
+                }
+                for (int j = 0; j < sides.length; j++) {
+                    appendValue(cssStringBuilder, sides[j].getValue());
+                    if (j != sides.length - 1) {
+                        cssStringBuilder.append(" ");
+                    }
+                }
+                if (i != layeredSides.length - 1) {
+                    cssStringBuilder.append(", ");
                 }
             }
         });
@@ -405,25 +523,7 @@ public class Main {
                 }
             }
         });
-        CONVERTERS.put(LayeredBackgroundSizeConverter.class, (cssStringBuilder, parsedValue, converter, value) -> {
-            ParsedValue[] layeredPositions = (ParsedValue[]) value;
-            if (layeredPositions.length == 0) {
-                cssStringBuilder.append("null");
-            }
-            for (int i = 0; i < layeredPositions.length; i++) {
-                ParsedValue[] sides = (ParsedValue[]) layeredPositions[i].getValue();
-                appendValue(cssStringBuilder, sides[i] == null ? "auto" : sides[i].getValue());
-                cssStringBuilder.append(" ");
-                appendValue(cssStringBuilder, sides[i] == null ? "auto" : sides[i].getValue());
-                cssStringBuilder.append(" ");
-                appendValue(cssStringBuilder, sides[i] == null ? "false" : sides[i].getValue());
-                cssStringBuilder.append(" ");
-                appendValue(cssStringBuilder, sides[i] == null ? "false" : sides[i].getValue());
-                if (i != layeredPositions.length - 1) {
-                    cssStringBuilder.append(", ");
-                }
-            }
-        });
+
     }
 
     static {
